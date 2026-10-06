@@ -57,6 +57,7 @@ data/*.csv
 *.exe
 *.o
 *.obj
+/dsa/
 
 # OS generated files
 .DS_Store
