@@ -1,0 +1,6 @@
+{
+  "threshold": 0.07,
+  "selection_data": "validation split from training data",
+  "validation_net_value": 171978.30612447078,
+  "logistic_regression_threshold": 0.15
+}

@@ -31,17 +31,11 @@ DIVIDE(
 
 // 3. Total Monthly Revenue at Risk (From ML Predictions)
 Monthly Revenue at Risk = 
-CALCULATE(
-    SUM(churn_scores[revenue_at_risk]),
-    churn_scores[is_high_risk] = 1
-)
+SUM(churn_scores[revenue_at_risk])
 
 // 4. Customer Lifetime Value (CLV) at Risk
 CLV at Risk = 
-CALCULATE(
-    SUM(churn_scores[clv_estimate]),
-    churn_scores[is_high_risk] = 1
-)
+SUM(churn_scores[clv_at_risk])
 
 // 5. Model Accuracy / Risk Coverage Ratio
 High Risk Coverage % = 
@@ -57,10 +51,10 @@ DIVIDE(
 ## 📊 3. Visual Canvas Layout
 
 1. **Header Cards (Top Row):**
-   - Card 1: `Overall Churn Rate %` (26.5%)
-   - Card 2: `Monthly Revenue at Risk` ($142,500)
-   - Card 3: `CLV at Risk` ($4.2M)
-   - Card 4: `High Risk Customers` (Count: 1,480)
+  - Card 1: `Overall Churn Rate %`
+  - Card 2: `Monthly Revenue at Risk` (sum of probability-weighted monthly exposure)
+  - Card 3: `Estimated CLV at Risk` (illustrative value under the configured remaining-month assumption)
+  - Card 4: `High Risk Customers` (count using the saved operating threshold)
 
 2. **Main Visuals (Middle Section):**
    - **Visual 1 (Donut Chart):** Risk Level Breakdown (`High`, `Medium`, `Low`) from `churn_scores`.
@@ -70,3 +64,5 @@ DIVIDE(
 3. **High-Risk Intervention Queue (Bottom Table):**
    - Table columns: `Customer ID`, `Contract`, `Tenure`, `Monthly Charges`, `Churn Probability %`, `CLV Estimate`.
    - Filtered to `is_high_risk = 1`, sorted descending by `Churn Probability`.
+
+The figures come from the loaded source and current score export. Do not copy sample values into cards; refresh the PostgreSQL tables after each scoring run. Revenue and CLV exposure are model-based estimates, not realized losses or retention savings.

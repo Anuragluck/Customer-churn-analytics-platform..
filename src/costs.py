@@ -10,16 +10,21 @@ from __future__ import annotations
 import pandas as pd
 import numpy as np
 from src.config import (
-    RETENTION_OFFER_COST, RETENTION_SUCCESS_RATE, AVG_CUSTOMER_LIFETIME_MONTHS
+    RETENTION_OFFER_COST, RETENTION_SUCCESS_RATE, AVG_CUSTOMER_LIFETIME_MONTHS,
+    DISCOUNT_RATE_ANNUAL,
 )
 
 
 def calculate_customer_clv(
     monthly_charges: float | np.ndarray,
-    remaining_months: float = AVG_CUSTOMER_LIFETIME_MONTHS
+    remaining_months: float = AVG_CUSTOMER_LIFETIME_MONTHS,
+    annual_discount_rate: float = DISCOUNT_RATE_ANNUAL,
 ) -> float | np.ndarray:
-    """Estimate Customer Lifetime Value (CLV) based on monthly bill & remaining tenure."""
-    return monthly_charges * remaining_months
+    """Estimate discounted remaining billings as an illustrative customer value."""
+    monthly_rate = (1.0 + annual_discount_rate) ** (1.0 / 12.0) - 1.0
+    if monthly_rate == 0:
+        return monthly_charges * remaining_months
+    return monthly_charges * (1.0 - (1.0 + monthly_rate) ** (-remaining_months)) / monthly_rate
 
 
 def compute_financial_outcomes(

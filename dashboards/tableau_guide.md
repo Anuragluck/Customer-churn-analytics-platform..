@@ -25,13 +25,13 @@ This guide details how to connect Tableau to the PostgreSQL database and build t
 - **Rows:** `AVG(Number of Records)` or Calculated Field: `SUM(IF [Churn] = 'Yes' THEN 1 ELSE 0 END) / COUNT([Customer Id])`
 - **Mark:** Bar Chart
 - **Color:** Red for Month-to-Month, Blue/Grey for 1-Yr and 2-Yr.
-- **Insight:** Month-to-month contracts exhibit ~42.7% churn, compared to <3% for 2-year contracts.
+- **Interpretation:** Compare the observed rates from the loaded sample; avoid treating this descriptive association as a causal contract effect.
 
 ### Sheet 2: Monthly Charges Distribution (Box Plot / Violin Plot)
 - **Columns:** `Churn` (Yes / No)
 - **Rows:** `Monthly Charges`
 - **Mark:** Box Plot with individual customer jitter points.
-- **Insight:** Churned customers have a significantly higher median monthly charge (~$80 vs ~$60).
+- **Interpretation:** Read the medians from the live data rather than using a prefilled estimate.
 
 ### Sheet 3: Tenure Cohort Survival Curve (Kaplan-Meier View)
 - Import the image exported from `model/survival_analysis.py` (`model/survival_by_contract.png`) or create a bin-based tenure step line chart.
@@ -43,7 +43,7 @@ This guide details how to connect Tableau to the PostgreSQL database and build t
 - **Columns:** `Internet Service` (DSL, Fiber optic, None)
 - **Rows:** `Tech Support` (Yes, No)
 - **Color Metric:** `Churn Rate %`
-- **Insight:** Fiber optic customers *without* Tech Support have the highest churn rate across the entire user base (~49.3%).
+- **Interpretation:** Use the heatmap to find segments worth investigating; small groups should be interpreted with their customer counts.
 
 ---
 

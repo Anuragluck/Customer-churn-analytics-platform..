@@ -1,13 +1,11 @@
-# Use official lightweight Python 3.10 image
-FROM python:3.10-slim
+FROM python:3.12-slim
 
 # Set working directory
 WORKDIR /app
 
 # Install system dependencies (including gcc & libpq for psycopg2)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
+    libgomp1 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -22,7 +20,7 @@ COPY . .
 EXPOSE 8501
 
 # Healthcheck to verify container status
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 
 # Launch Streamlit web application
 CMD ["streamlit", "run", "streamlit_app/app.py", "--server.port=8501", "--server.address=0.0.0.0"]

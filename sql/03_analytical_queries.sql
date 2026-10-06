@@ -29,7 +29,7 @@ SELECT
     COUNT(*) AS customer_count,
     ROUND(SUM(cs.monthly_charges), 2) AS total_monthly_revenue,
     ROUND(SUM(cs.revenue_at_risk), 2) AS monthly_revenue_at_risk,
-    ROUND(SUM(cs.clv_estimate), 2) AS total_clv_at_risk
+    ROUND(SUM(cs.clv_at_risk), 2) AS total_clv_at_risk
 FROM churn_scores cs
 GROUP BY cs.risk_level
 ORDER BY monthly_revenue_at_risk DESC;

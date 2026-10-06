@@ -1,0 +1,131 @@
+{
+  "dataset_rows": 7043,
+  "feature_count": 19,
+  "churn_rate": 0.2653698707936959,
+  "test_rows": 1409,
+  "xgboost_default_threshold": {
+    "threshold": 0.5,
+    "accuracy": 0.8019872249822569,
+    "precision_churn": 0.6479750778816199,
+    "recall_churn": 0.5561497326203209,
+    "roc_auc": 0.8410266346327728,
+    "pr_auc": 0.6465138790092307,
+    "brier_score": 0.1376440659016185,
+    "confusion_matrix": {
+      "tn": 922,
+      "fp": 113,
+      "fn": 166,
+      "tp": 208
+    }
+  },
+  "xgboost_cost_threshold": {
+    "threshold": 0.07,
+    "accuracy": 0.5450674237047551,
+    "precision_churn": 0.364741641337386,
+    "recall_churn": 0.9625668449197861,
+    "roc_auc": 0.8410266346327728,
+    "pr_auc": 0.6465138790092307,
+    "brier_score": 0.1376440659016185,
+    "confusion_matrix": {
+      "tn": 408,
+      "fp": 627,
+      "fn": 14,
+      "tp": 360
+    }
+  },
+  "logistic_regression_threshold_0_5": {
+    "threshold": 0.5,
+    "accuracy": 0.7402413058907026,
+    "precision_churn": 0.506993006993007,
+    "recall_churn": 0.7754010695187166,
+    "roc_auc": 0.8471104911002608,
+    "pr_auc": 0.6660191178311046,
+    "brier_score": 0.16425705812080513,
+    "confusion_matrix": {
+      "tn": 753,
+      "fp": 282,
+      "fn": 84,
+      "tp": 290
+    }
+  },
+  "logistic_regression_cost_threshold": {
+    "threshold": 0.15,
+    "accuracy": 0.5493257629524485,
+    "precision_churn": 0.3683148335015136,
+    "recall_churn": 0.9759358288770054,
+    "roc_auc": 0.8471104911002608,
+    "pr_auc": 0.6660191178311046,
+    "brier_score": 0.16425705812080513,
+    "confusion_matrix": {
+      "tn": 409,
+      "fp": 626,
+      "fn": 9,
+      "tp": 365
+    }
+  },
+  "false_negative_reduction_pct_cost_policies": -55.55555555555556,
+  "false_negative_reduction_pct_both_at_0_5": -97.61904761904762,
+  "financial_estimate": {
+    "assumptions": "Illustrative offer cost, success rate, and 30-month value assumptions; not realized savings.",
+    "retention_policy_net_value": 197215.94611810238,
+    "savings_vs_do_nothing": 197215.94611810238,
+    "savings_vs_contact_everyone": 14411.986417860666
+  },
+  "selected_hyperparameters": {
+    "n_estimators": 500,
+    "max_depth": 3,
+    "learning_rate": 0.03,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "min_child_weight": 3,
+    "gamma": 0.1,
+    "reg_alpha": 0.1,
+    "reg_lambda": 1.0,
+    "scale_pos_weight": 1.0,
+    "eval_metric": "logloss",
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "shap_top_features": [
+    {
+      "feature": "Contract_Month-to-month",
+      "mean_absolute_shap": 0.5578732490539551
+    },
+    {
+      "feature": "charge_per_tenure",
+      "mean_absolute_shap": 0.5517213940620422
+    },
+    {
+      "feature": "OnlineSecurity_No",
+      "mean_absolute_shap": 0.2275611013174057
+    },
+    {
+      "feature": "InternetService_Fiber optic",
+      "mean_absolute_shap": 0.1795799285173416
+    },
+    {
+      "feature": "TechSupport_No",
+      "mean_absolute_shap": 0.1712997704744339
+    },
+    {
+      "feature": "MonthlyCharges",
+      "mean_absolute_shap": 0.16790218651294708
+    },
+    {
+      "feature": "PaymentMethod_Electronic check",
+      "mean_absolute_shap": 0.15895713865756989
+    },
+    {
+      "feature": "Contract_Two year",
+      "mean_absolute_shap": 0.14259837567806244
+    },
+    {
+      "feature": "tenure",
+      "mean_absolute_shap": 0.118708036839962
+    },
+    {
+      "feature": "MultipleLines_No",
+      "mean_absolute_shap": 0.11621477454900742
+    }
+  ]
+}

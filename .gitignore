@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+.pytest_cache/
 *.py[cod]
 *$py.class
 
@@ -43,6 +44,8 @@ wheels/
 # Large files / Data (uncomment if you want to track sample data only)
 data/*.csv
 !data/sample_customers.csv
+!data/telco_churn.csv
+data/active_customer_scores.csv
 
 # Models & artifacts (track lightweight models or store in releases/DVC)
 *.pkl.gz

@@ -2,10 +2,7 @@
 -- 01_schema.sql — PostgreSQL Schema Setup for Customer Churn Analytics
 -- ============================================================================
 
-DROP TABLE IF EXISTS churn_scores CASCADE;
-DROP TABLE IF EXISTS customers CASCADE;
-
-CREATE TABLE customers (
+CREATE TABLE IF NOT EXISTS customers (
     customer_id VARCHAR(50) PRIMARY KEY,
     gender VARCHAR(10),
     senior_citizen INT,
@@ -29,7 +26,7 @@ CREATE TABLE customers (
     churn VARCHAR(5)
 );
 
-CREATE TABLE churn_scores (
+CREATE TABLE IF NOT EXISTS churn_scores (
     customer_id VARCHAR(50) PRIMARY KEY REFERENCES customers(customer_id) ON DELETE CASCADE,
     tenure INT,
     contract VARCHAR(30),
@@ -39,9 +36,11 @@ CREATE TABLE churn_scores (
     is_high_risk INT,
     revenue_at_risk NUMERIC(10, 2),
     clv_estimate NUMERIC(10, 2),
+    clv_at_risk NUMERIC(10, 2),
     scored_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_customers_contract ON customers(contract);
-CREATE INDEX idx_customers_churn ON customers(churn);
-CREATE INDEX idx_churn_scores_risk ON churn_scores(risk_level);
+CREATE INDEX IF NOT EXISTS idx_customers_contract ON customers(contract);
+CREATE INDEX IF NOT EXISTS idx_customers_churn ON customers(churn);
+CREATE INDEX IF NOT EXISTS idx_churn_scores_risk ON churn_scores(risk_level);
+ALTER TABLE churn_scores ADD COLUMN IF NOT EXISTS clv_at_risk NUMERIC(10, 2);

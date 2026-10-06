@@ -91,7 +91,12 @@ def get_tree_estimator(pipeline: Pipeline) -> XGBClassifier:
     """
     model = pipeline.named_steps["classifier"]
     if hasattr(model, "calibrated_classifiers_"):
-        return model.calibrated_classifiers_[0].estimator
+        calibrated = model.calibrated_classifiers_[0]
+        for attribute in ("estimator", "estimator_", "base_estimator"):
+            estimator = getattr(calibrated, attribute, None)
+            if estimator is not None:
+                return estimator
+        raise AttributeError("Could not locate the fitted estimator in the calibrated classifier.")
     return model
 
 

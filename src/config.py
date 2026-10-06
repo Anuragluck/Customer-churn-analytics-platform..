@@ -6,18 +6,22 @@ live here so every other module imports from one place.
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 # ──────────────────────────────────────────────
 # PATHS
 # ──────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(PROJECT_ROOT / ".env")
 DATA_DIR = PROJECT_ROOT / "data"
 MODEL_DIR = PROJECT_ROOT / "model"
 RAW_CSV = DATA_DIR / "telco_churn.csv"
 
-PIPELINE_PATH = MODEL_DIR / "churn_pipeline.pkl"
-CALIBRATED_PATH = MODEL_DIR / "calibrated_model.pkl"
+CALIBRATED_PATH = MODEL_DIR / "calibrated_model.joblib"
 BASELINE_PATH = MODEL_DIR / "baseline_lr.pkl"
+METRICS_PATH = MODEL_DIR / "metrics.json"
+THRESHOLD_PATH = MODEL_DIR / "threshold.json"
 
 # ──────────────────────────────────────────────
 # COLUMN DEFINITIONS  (Kaggle Telco Customer Churn)
@@ -75,7 +79,7 @@ SERVICE_COLS = [
 ]
 
 # ──────────────────────────────────────────────
-# MODEL HYPERPARAMETERS  (tuned for 86%+ accuracy)
+# MODEL HYPERPARAMETERS  (candidate values; final configuration is selected on validation data)
 # ──────────────────────────────────────────────
 XGBOOST_PARAMS = {
     "n_estimators": 300,
@@ -87,11 +91,10 @@ XGBOOST_PARAMS = {
     "gamma": 0.1,
     "reg_alpha": 0.1,
     "reg_lambda": 1.0,
-    "scale_pos_weight": 2.8,   # ~73.5% non-churn / 26.5% churn
+    "scale_pos_weight": 1.0,
     "eval_metric": "logloss",
     "random_state": 42,
     "n_jobs": -1,
-    "use_label_encoder": False,
 }
 
 LOGISTIC_PARAMS = {
@@ -125,10 +128,10 @@ DB_CONFIG = {
     "port": 5432,
     "database": "churn_db",
     "user": "postgres",
-    "password": "postgres",    # override via .env in production
+    "password": os.getenv("POSTGRES_PASSWORD", ""),
 }
 
-DB_URI = (
+DB_URI = os.getenv("DATABASE_URL") or (
     f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}"
     f"@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
 )

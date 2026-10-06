@@ -22,7 +22,7 @@ def run_survival_analysis(output_dir: str | Path | None = None) -> dict:
     save_dir = Path(output_dir) if output_dir else MODEL_DIR
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    print("⏳ Loading raw data for survival analysis...")
+    print("Loading raw data for survival analysis...")
     df = load_raw_data()
 
     # Tenure = time event variable; Churn = binary event (1 = churned, 0 = censored)
@@ -62,13 +62,15 @@ def run_survival_analysis(output_dir: str | Path | None = None) -> dict:
     plt.close(fig_contract)
     plt.close(fig)
 
-    print(f"📊 Saved Kaplan-Meier plot to {km_chart_path}")
-    print("\n⏳ Median Survival Times (Months to 50% Churn):")
+    print(f"Saved Kaplan-Meier plot to {km_chart_path}")
+    print("\nMedian Survival Times (Months to 50% Churn):")
     for contract, median in median_survivals.items():
-        print(f"   ► {contract}: {median} months")
+        print(f"   {contract}: {median} months")
 
     # 3. Cox Proportional Hazards Model
-    print("\n⚡ Fitting Cox Proportional Hazards Model...")
+    print("\nFitting Cox Proportional Hazards Model...")
+    # Tenure is required as the duration column; lifelines removes it from the
+    # covariates when duration_col is specified below.
     cox_cols = ["tenure", "MonthlyCharges", "Contract", "InternetService", TARGET]
     cox_df = df[cox_cols].copy()
     cox_df[TARGET] = (cox_df[TARGET].astype(str).str.strip().str.lower() == "yes").astype(int)
@@ -77,13 +79,13 @@ def run_survival_analysis(output_dir: str | Path | None = None) -> dict:
     cox_df = pd.get_dummies(cox_df, columns=["Contract", "InternetService"], drop_first=True)
 
     cph = CoxPHFitter()
-    cph.fit(cox_df, duration_col="tenure", event_col=TARGET)
+    cph.fit(cox_df, duration_col="tenure", event_col=TARGET, robust=True)
 
     hazard_ratios = cph.hazard_ratios_.to_dict()
 
-    print("\n📈 Hazard Ratios (Risk Multipliers):")
+    print("\nHazard Ratios (Risk Multipliers):")
     for feature, hr in hazard_ratios.items():
-        print(f"   ► {feature}: {hr:.4f}")
+        print(f"   {feature}: {hr:.4f}")
 
     return {
         "median_survivals": median_survivals,
