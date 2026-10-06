@@ -17,6 +17,12 @@ import joblib
 import shap
 from pathlib import Path
 import json
+import sys
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+if str(REPOSITORY_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPOSITORY_ROOT))
+
+
 
 from src.config import PROJECT_ROOT, CALIBRATED_PATH, METRICS_PATH, THRESHOLD_PATH
 from src.costs import calculate_customer_clv
