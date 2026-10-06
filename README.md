@@ -28,7 +28,7 @@ python -m model.score_customers --no-db
 streamlit run streamlit_app/app.py
 ```
 
-Training writes the calibrated model, baseline model, threshold policy, test metrics, and calibration plot under `model/`. Batch scoring writes `data/active_customer_scores.csv`. The Streamlit app reads those generated artifacts and the bundled source data.
+Training writes the calibrated model, baseline model, threshold policy, test metrics, and calibration plot under `model/`. The repository includes a reference `data/active_customer_scores.csv` produced by the batch scorer; regenerate it with `python -m model.score_customers --no-db`. The Streamlit app reads these artifacts and the bundled source data.
 
 ## Model evaluation and business assumptions
 
