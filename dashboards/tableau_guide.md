@@ -1,6 +1,6 @@
 # 📊 Tableau Dashboard Implementation Guide
 
-This guide details how to connect Tableau to the PostgreSQL database and build the Visual Exploratory Data Analysis (EDA) dashboard with Kaplan-Meier survival cohort analysis.
+Use this guide to connect Tableau to PostgreSQL for refreshable analysis. A ready-to-open Excel dashboard and BI-ready tables are also included at `dashboards/churn_analytics_dashboard.xlsx` if you want to explore before PostgreSQL is running.
 
 ---
 
@@ -16,13 +16,15 @@ This guide details how to connect Tableau to the PostgreSQL database and build t
 4. Drag and drop the `customers` table into the Canvas.
 5. Create a **Left Join** between `customers` and `churn_scores` on `customer_id = customer_id`.
 
+Before joining, load customers with `python -m scripts.load_data --create-schema`, then publish model scores with `python -m model.score_customers`. The join is one-to-zero-or-one because `churn_scores` contains only retained rows used as the project's active-customer proxy. Keep observed churn charts based on `customers`; use `churn_scores` for predicted risk and exposure.
+
 ---
 
 ## 📈 2. Visual Worksheets to Build
 
 ### Sheet 1: Churn Rate by Contract Type (Bar Chart)
 - **Columns:** `Contract`
-- **Rows:** `AVG(Number of Records)` or Calculated Field: `SUM(IF [Churn] = 'Yes' THEN 1 ELSE 0 END) / COUNT([Customer Id])`
+- **Rows:** `SUM(IIF([churn] = 'Yes', 1, 0)) / COUNTD([customer_id])`
 - **Mark:** Bar Chart
 - **Color:** Red for Month-to-Month, Blue/Grey for 1-Yr and 2-Yr.
 - **Interpretation:** Compare the observed rates from the loaded sample; avoid treating this descriptive association as a causal contract effect.
@@ -33,11 +35,9 @@ This guide details how to connect Tableau to the PostgreSQL database and build t
 - **Mark:** Box Plot with individual customer jitter points.
 - **Interpretation:** Read the medians from the live data rather than using a prefilled estimate.
 
-### Sheet 3: Tenure Cohort Survival Curve (Kaplan-Meier View)
-- Import the image exported from `model/survival_analysis.py` (`model/survival_by_contract.png`) or create a bin-based tenure step line chart.
-- **Columns:** `Tenure` (0 to 72 months)
-- **Rows:** `% Remaining Retained`
-- **Color:** `Contract`
+### Sheet 3: Tenure Survival View
+- Use the generated Kaplan–Meier figure at `model/survival_by_contract.png` as a dashboard image, or rebuild a descriptive tenure curve from `customers`.
+- **Important:** The sample has no event dates or customer snapshots. A tenure curve by contract is exploratory and should not be described as a longitudinal cohort estimate.
 
 ### Sheet 4: Service Bundling & Tech Support Heatmap
 - **Columns:** `Internet Service` (DSL, Fiber optic, None)
@@ -49,3 +49,14 @@ This guide details how to connect Tableau to the PostgreSQL database and build t
 
 ## 🖥️ 3. Dashboard Layout
 Combine Sheets 1–4 into a 1920x1080 Interactive Executive Layout with global filters for `Senior Citizen`, `Payment Method`, and `Tenure Cohort`.
+
+## Refreshable workbook
+
+To rebuild the accompanying dashboard after new scores are generated, run:
+
+```powershell
+python -m model.score_customers --no-db
+python dashboards/build_dashboard.py
+```
+
+Open `churn_analytics_dashboard.xlsx` in Excel, or connect Tableau to its `Source Data`, `Customer Scores`, `Contract Summary`, and `Risk Summary` sheets. The workbook charts summarize the bundled sample and score export; direct PostgreSQL connections are preferred for recurring refreshes.

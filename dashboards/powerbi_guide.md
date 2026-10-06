@@ -1,6 +1,6 @@
 # 📈 Power BI Executive KPI Dashboard Guide
 
-This guide details how to build the executive-facing Power BI dashboard tracking **Overall Churn %**, **Revenue at Risk**, and **Customer Lifetime Value (CLV)** trends, connected directly to PostgreSQL.
+This guide details the executive Power BI view for **Observed Churn %**, **Expected Revenue at Risk**, and **CLV at Risk**. The refreshable workbook `dashboards/churn_analytics_dashboard.xlsx` is ready to import; use PostgreSQL for recurring database refreshes.
 
 ---
 
@@ -11,6 +11,8 @@ This guide details how to build the executive-facing Power BI dashboard tracking
 2. Server: `localhost:5432` | Database: `churn_db`.
 3. Select tables `customers` and `churn_scores`.
 4. Storage Mode: **DirectQuery** or **Import (scheduled refresh)**.
+
+For a workbook-backed prototype, select **Get Data → Excel workbook**, then import `Source Data`, `Customer Scores`, `Contract Summary`, and `Risk Summary`. For PostgreSQL, load customers and batch scores first. Relate `customers[customer_id]` to `churn_scores[customer_id]` as one-to-zero-or-one; scores cover only retained rows used as a teaching proxy for active customers.
 
 ---
 
@@ -66,3 +68,12 @@ DIVIDE(
    - Filtered to `is_high_risk = 1`, sorted descending by `Churn Probability`.
 
 The figures come from the loaded source and current score export. Do not copy sample values into cards; refresh the PostgreSQL tables after each scoring run. Revenue and CLV exposure are model-based estimates, not realized losses or retention savings.
+
+## Refresh the workbook
+
+```powershell
+python -m model.score_customers --no-db
+python dashboards/build_dashboard.py
+```
+
+The generated workbook contains the KPI cards and contract/risk summaries for offline review. The public Streamlit app also includes a working executive KPI dashboard. Native `.pbix` authoring requires Power BI Desktop; use these field mappings to create and refresh that report from the workbook or PostgreSQL tables.

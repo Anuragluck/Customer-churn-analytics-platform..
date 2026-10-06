@@ -105,7 +105,7 @@ tab1, tab2, tab3 = st.tabs([
 # ──────────────────────────────────────────────
 with tab1:
     st.subheader("Predict Individual Customer Churn Risk")
-    st.markdown("Enter customer details in the sidebar to compute calibrated churn probability & SHAP breakdown.")
+    st.markdown("Enter customer details below to compute calibrated churn probability & SHAP breakdown.")
 
     col_input1, col_input2, col_input3 = st.columns(3)
 

@@ -9,7 +9,7 @@ An end-to-end portfolio project for identifying customers at risk of leaving, ex
 - A cost-based contact threshold selected from a validation partition and reused in batch scoring and the Streamlit app.
 - Batch scoring of active rows, probability-weighted monthly revenue exposure, estimated customer value, and PostgreSQL upserts.
 - A Streamlit prediction app with SHAP explanations and data-driven dashboard KPIs.
-- PostgreSQL schema, repeatable data ingestion, 15 analytical SQL queries, Tableau and Power BI build guides, survival analysis, and a starter EDA notebook.
+- PostgreSQL schema, repeatable data ingestion, 15 analytical SQL queries, BI connection guides, a refreshable Excel dashboard, survival analysis, and a starter EDA notebook.
 
 ## Data
 
@@ -68,19 +68,20 @@ The scorer also saves a CSV if PostgreSQL is unavailable. It does not drop or re
 
 - **Survival analysis:** `python -m model.survival_analysis` exports a Kaplan–Meier chart and estimates a Cox model. This is exploratory: the public data lacks event dates and contract changes over time.
 - **Streamlit:** Shows individual prediction probability and SHAP drivers, observed contract churn rates, test metrics, and batch score exports.
-- **Tableau / Power BI:** Follow the connection and visual instructions in `dashboards/`. The guides describe how to build dashboards; they are not packaged `.twb` or `.pbix` files.
+- **Tableau / Power BI:** `dashboards/churn_analytics_dashboard.xlsx` is a refreshable dashboard and BI-ready workbook with source rows, active customer scores, contract summaries, risk summaries, and charts. Connect either tool directly to PostgreSQL for live data or import the workbook tabs. See the guides in `dashboards/` for field mappings and visual layouts.
+- **Excel dashboard refresh:** Run `python -m model.score_customers --no-db` followed by `python dashboards/build_dashboard.py` after retraining or rescoring.
 - **Notebook:** `notebooks/EDA_and_Model.ipynb` contains initial EDA; use the Python training module as the source of truth for model results.
 - **Docker:** `docker compose up --build` starts the app and PostgreSQL together.
 
-### Streamlit Community Cloud
+### Live demo
 
-Push the repository to GitHub, create a new Streamlit Community Cloud app from that repository, choose the `main` branch and `streamlit_app/app.py`, and deploy. The app and trained artifacts are in the repository; PostgreSQL is optional for the demo. After replacing the model, rerun training and commit the updated joblib model together with `model/metrics.json` and `model/threshold.json` so the app and score policy stay in sync.
+The deployed [Streamlit app](https://customer-churn-analytics-platform-4p3atmewxcctscsmcr7flm.streamlit.app/) is public. It runs individual predictions with SHAP explanations and includes executive KPIs, contract churn charts, model metrics, and the batch score table. PostgreSQL is an optional local integration for the hosted demo. After replacing the model, rerun training and commit the updated joblib artifact together with `model/metrics.json` and `model/threshold.json` so the app and score policy stay in sync.
 
 ## Repository layout
 
 ```text
 data/                 Source dataset and generated score export
-dashboards/           Tableau and Power BI guides
+dashboards/           BI guides, dashboard builder, and refreshable Excel dashboard
 model/                Training, scoring, survival analysis, generated artifacts
 notebooks/            EDA notebook
 scripts/              PostgreSQL ingestion command
