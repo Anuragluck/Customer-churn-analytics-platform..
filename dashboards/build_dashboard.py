@@ -60,7 +60,7 @@ def main() -> None:
             "Contract": contract,
             "Source customers": int(len(source_group)),
             "Observed churners": int(source_group["Churn"].eq("Yes").sum()),
-            "Observed churn rate": float(source_group["Churn"].eq("Yes").mean()),
+            "Observed churn rate (%)": round(float(source_group["Churn"].eq("Yes").mean()) * 100, 1),
             "Scored active customers": int(len(score_group)),
             "High-risk customers": int(score_group["is_high_risk"].sum()),
             "Revenue at risk ($/mo)": float(score_group["revenue_at_risk"].sum()),
@@ -100,8 +100,8 @@ def main() -> None:
         ("SOURCE CUSTOMERS", f"{len(source):,}"),
         ("OBSERVED CHURN RATE", f"{churn_rate:.1%}"),
         ("ACTIVE ROWS SCORED", f"{len(scores):,}"),
-        ("MONTHLY REVENUE EXPOSURE", f"${scores['revenue_at_risk'].sum():,.0f}"),
-        ("HIGH-RISK ACTIVE ROWS", f"{int(scores['is_high_risk'].sum()):,}"),
+        ("EXPECTED MONTHLY REVENUE EXPOSURE", f"${scores['revenue_at_risk'].sum():,.0f}"),
+        ("POLICY CONTACT CANDIDATES", f"{int(scores['is_high_risk'].sum()):,}"),
         ("MEAN CALIBRATED RISK", f"{scores['churn_probability'].mean():.1%}"),
     ]
     cards = [("A", "C"), ("E", "G"), ("I", "L"), ("A", "C"), ("E", "G"), ("I", "L")]
@@ -125,7 +125,7 @@ def main() -> None:
     contracts_ws = wb.create_sheet("Contract Summary")
     add_table(contracts_ws, contracts, "ContractSummary")
     for row in range(2, contracts_ws.max_row + 1):
-        contracts_ws.cell(row, 4).number_format = "0.0%"
+        contracts_ws.cell(row, 4).number_format = "0.0"
         for col in (7, 8):
             contracts_ws.cell(row, col).number_format = '$#,##0.00'
 
@@ -166,9 +166,13 @@ def main() -> None:
     churn_chart = BarChart()
     churn_chart.type = "bar"
     churn_chart.style = 10
-    churn_chart.title = "Observed Churn Rate by Contract"
+    churn_chart.title = "Observed Churn Rate by Contract (%)"
     churn_chart.y_axis.title = "Contract"
-    churn_chart.x_axis.title = "Observed churn rate"
+    churn_chart.x_axis.title = "Observed churn rate (%)"
+    churn_chart.x_axis.numFmt = "0.0"
+    churn_chart.x_axis.scaling.min = 0
+    churn_chart.x_axis.scaling.max = 100
+    churn_chart.legend = None
     churn_chart.add_data(Reference(contracts_ws, min_col=4, min_row=1, max_row=4), titles_from_data=True)
     churn_chart.set_categories(Reference(contracts_ws, min_col=1, min_row=2, max_row=4))
     churn_chart.height, churn_chart.width = 7, 12
@@ -182,6 +186,7 @@ def main() -> None:
     exposure_chart.title = "Expected Monthly Revenue Exposure by Contract"
     exposure_chart.y_axis.title = "Revenue exposure ($/mo)"
     exposure_chart.x_axis.title = "Contract"
+    exposure_chart.legend = None
     exposure_chart.add_data(Reference(contracts_ws, min_col=7, min_row=1, max_row=4), titles_from_data=True)
     exposure_chart.set_categories(Reference(contracts_ws, min_col=1, min_row=2, max_row=4))
     exposure_chart.height, exposure_chart.width = 7, 23
