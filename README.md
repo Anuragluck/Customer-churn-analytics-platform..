@@ -75,9 +75,9 @@ The scorer also saves a CSV if PostgreSQL is unavailable. It does not drop or re
 - **Notebook:** `notebooks/EDA_and_Model.ipynb` contains initial EDA; use the Python training module as the source of truth for model results.
 - **Docker:** `docker compose up --build` starts the app and PostgreSQL together.
 
-### Live demo
+### Hosted demo
 
-The deployed [Streamlit app](https://customer-churn-analytics-platform-4p3atmewxcctscsmcr7flm.streamlit.app/) is public. It runs individual predictions with SHAP explanations and includes executive KPIs, contract churn charts, model metrics, and the batch score table. PostgreSQL is an optional local integration for the hosted demo. After replacing the model, rerun training and commit the updated joblib artifact together with `model/metrics.json` and `model/threshold.json` so the app and score policy stay in sync.
+The configured [Streamlit Community Cloud URL](https://customer-churn-analytics-platform-4p3atmewxcctscsmcr7flm.streamlit.app/) was showing a crash page at the last health check. The local app responds successfully at `http://localhost:8501`; use the local Quick start above until the hosted deployment is healthy again. Streamlit Cloud deployment logs are account-specific, so inspect the app's **Manage app → Logs** page to identify a cloud-only startup error, then redeploy. PostgreSQL is an optional local integration for the hosted demo. After replacing the model, rerun training and commit the updated joblib artifact together with `model/metrics.json` and `model/threshold.json` so the app and score policy stay in sync.
 
 ## Repository layout
 
