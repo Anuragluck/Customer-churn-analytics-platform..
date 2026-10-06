@@ -29,10 +29,12 @@ def load_to_postgres(csv_path: str | Path = RAW_CSV, create_schema: bool = False
     engine = create_engine(DB_URI)
     with engine.begin() as conn:
         if create_schema:
-            schema = (Path(__file__).resolve().parents[1] / "sql" / "01_schema.sql").read_text(encoding="utf-8")
-            for statement in schema.split(";"):
-                if statement.strip():
-                    conn.exec_driver_sql(statement)
+            sql_dir = Path(__file__).resolve().parents[1] / "sql"
+            for filename in ("01_schema.sql", "04_bi_views.sql"):
+                script = (sql_dir / filename).read_text(encoding="utf-8")
+                for statement in script.split(";"):
+                    if statement.strip():
+                        conn.exec_driver_sql(statement)
         df.to_sql("_staging_customers", con=conn, if_exists="replace", index=False)
         conn.execute(text("""
             INSERT INTO customers (

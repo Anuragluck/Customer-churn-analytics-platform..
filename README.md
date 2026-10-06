@@ -9,7 +9,7 @@ An end-to-end portfolio project for identifying customers at risk of leaving, ex
 - A cost-based contact threshold selected from a validation partition and reused in batch scoring and the Streamlit app.
 - Batch scoring of active rows, probability-weighted monthly revenue exposure, estimated customer value, and PostgreSQL upserts.
 - A Streamlit prediction app with SHAP explanations and data-driven dashboard KPIs.
-- PostgreSQL schema, repeatable data ingestion, 15 analytical SQL queries, BI connection guides, a refreshable Excel dashboard, survival analysis, and a starter EDA notebook.
+- PostgreSQL schema, repeatable data ingestion, 15 analytical SQL queries, BI-ready semantic views, BI connection guides, a refreshable Excel dashboard, survival analysis, and a starter EDA notebook.
 
 ## Data
 
@@ -52,13 +52,15 @@ The default split is stratified and reproducible. This benchmark is a static cro
 ## PostgreSQL
 
 1. Install Docker Desktop and copy `.env.example` to `.env`; replace its local development password.
-2. Start PostgreSQL and the app, then load/update source rows:
+2. Start PostgreSQL and the app, then load/update source rows and create the BI views:
 
 ```powershell
 docker compose up --build -d
 docker compose run --rm app python -m scripts.load_data --create-schema
 docker compose run --rm app python -m model.score_customers
 ```
+
+The schema setup also creates `v_customer_churn_analytics` (one row per customer), `v_churn_bi_kpis`, and `v_churn_contract_summary`. Connect Tableau or Power BI to these views for a consistent semantic layer. The customer view left-joins model scores, so historical churn analysis remains available for every row while predictions and exposure are populated for the scored active-customer proxy only.
 
 Open `http://localhost:8501`. For an installed PostgreSQL instead, set `DATABASE_URL` in `.env` to its connection string and run the Python module commands directly.
 
@@ -68,7 +70,7 @@ The scorer also saves a CSV if PostgreSQL is unavailable. It does not drop or re
 
 - **Survival analysis:** `python -m model.survival_analysis` exports a Kaplan–Meier chart and estimates a Cox model. This is exploratory: the public data lacks event dates and contract changes over time.
 - **Streamlit:** Shows individual prediction probability and SHAP drivers, observed contract churn rates, test metrics, and batch score exports.
-- **Tableau / Power BI:** `dashboards/churn_analytics_dashboard.xlsx` is a refreshable dashboard and BI-ready workbook with source rows, active customer scores, contract summaries, risk summaries, and charts. Connect either tool directly to PostgreSQL for live data or import the workbook tabs. See the guides in `dashboards/` for field mappings and visual layouts.
+- **Tableau / Power BI:** `dashboards/churn_analytics_dashboard.xlsx` is a refreshable dashboard and BI-ready workbook with source rows, active customer scores, contract summaries, risk summaries, and charts. Connect either tool to the PostgreSQL BI views for live local data, or import the workbook tabs. See the guides in `dashboards/` for field mappings and visual layouts. Native Tableau workbooks and Power BI reports are user-authored in their desktop applications; the repo includes the data model, source, and build instructions.
 - **Excel dashboard refresh:** Run `python -m model.score_customers --no-db` followed by `python dashboards/build_dashboard.py` after retraining or rescoring.
 - **Notebook:** `notebooks/EDA_and_Model.ipynb` contains initial EDA; use the Python training module as the source of truth for model results.
 - **Docker:** `docker compose up --build` starts the app and PostgreSQL together.
