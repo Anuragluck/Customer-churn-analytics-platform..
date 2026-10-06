@@ -53,6 +53,11 @@ data/*.csv
 # Logs
 *.log
 
+# Local C++ practice build outputs
+*.exe
+*.o
+*.obj
+
 # OS generated files
 .DS_Store
 Thumbs.db
