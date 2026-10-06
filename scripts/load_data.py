@@ -15,6 +15,7 @@ def load_to_postgres(csv_path: str | Path = RAW_CSV, create_schema: bool = False
     df = load_raw_data(csv_path).copy()
     df = df.rename(columns={
         "customerID": "customer_id", "SeniorCitizen": "senior_citizen",
+        "Partner": "partner", "Dependents": "dependents",
         "PhoneService": "phone_service", "MultipleLines": "multiple_lines",
         "InternetService": "internet_service", "OnlineSecurity": "online_security",
         "OnlineBackup": "online_backup", "DeviceProtection": "device_protection",
@@ -47,6 +48,7 @@ def load_to_postgres(csv_path: str | Path = RAW_CSV, create_schema: bool = False
                 streaming_movies, contract, paperless_billing, payment_method,
                 monthly_charges, total_charges, churn
             FROM _staging_customers
+            WHERE TRUE
             ON CONFLICT (customer_id) DO UPDATE SET
                 gender = EXCLUDED.gender, senior_citizen = EXCLUDED.senior_citizen,
                 partner = EXCLUDED.partner, dependents = EXCLUDED.dependents,
