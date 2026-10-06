@@ -1,23 +1,66 @@
 # Customer Churn Prediction & Analytics Platform
 
-An end-to-end portfolio project for identifying customers at risk of leaving, explaining individual predictions, estimating retention campaign value, and exposing customer scores to PostgreSQL and BI tools.
+This is my end-to-end data science project about customer churn. I used the IBM Telco Customer Churn sample to train a model, look at the reasons behind its predictions, and make a small app where a user can try a prediction.
 
-## What is included
+I wanted to practice more than model training, so the project also has a PostgreSQL database, SQL analysis, batch scoring, and dashboard files and guides.
 
-- A preprocessing and prediction pipeline with one-hot encoding, feature engineering, XGBoost, and isotonic probability calibration.
-- A Logistic Regression baseline and held-out evaluation using churn recall, PR-AUC, ROC-AUC, Brier score, accuracy, and confusion matrices.
-- A cost-based contact threshold selected from a validation partition and reused in batch scoring and the Streamlit app.
-- Batch scoring of active rows, probability-weighted monthly revenue exposure, estimated customer value, and PostgreSQL upserts.
-- A Streamlit prediction app with SHAP explanations and data-driven dashboard KPIs.
-- PostgreSQL schema, repeatable data ingestion, 15 analytical SQL queries, BI-ready semantic views, BI connection guides, a refreshable Excel dashboard, survival analysis, and a starter EDA notebook.
+## What the project does
 
-## Data
+- Trains an XGBoost churn classifier on 7,043 customer records with 19 input features. The customer ID and churn label are not used as model inputs.
+- Compares XGBoost with a Logistic Regression baseline and reports accuracy, churn recall, ROC-AUC, PR-AUC, calibration, and confusion matrices.
+- Uses SHAP to explain model output. In this run, contract type and the engineered `charge_per_tenure` feature ranked highly. Online security, internet service, tech support, monthly charges, and tenure also appear in the feature results.
+- Saves the trained model with joblib and uses the same preprocessing pipeline for predictions.
+- Scores the retained customers in the sample and writes their risk and revenue exposure to PostgreSQL.
+- Includes 15 SQL analysis queries, PostgreSQL views for BI tools, a refreshable Excel dashboard, and Power BI and Tableau connection guides.
+- Includes a Streamlit app for individual predictions, SHAP explanations, model metrics, and customer score review.
 
-The repository includes the IBM Telco Customer Churn sample dataset (7,043 records; one identifier, 19 predictors, and the churn target). Source: [IBM Telco Customer Churn sample](https://github.com/IBM/telco-customer-churn-on-icp4d). The data is for demonstration and model development; it is not a production customer list.
+## Model results
 
-## Quick start
+These numbers come from the current saved run, using a held-out test set of 1,409 rows. The default 0.50 threshold results are:
 
-Use Python 3.10 or later. From the repository root:
+| Model | Accuracy | ROC-AUC | PR-AUC | Churn recall | False negatives |
+|---|---:|---:|---:|---:|---:|
+| XGBoost | 80.2% | 0.841 | 0.647 | 55.6% | 166 |
+| Logistic Regression | 74.0% | 0.847 | 0.666 | 77.5% | 84 |
+
+At the default threshold, XGBoost had higher accuracy, while Logistic Regression had better churn recall and PR-AUC on this split. I also tried a cost-based threshold for prioritizing recall. The chosen XGBoost threshold was 0.07 and caught more churners, but it also flagged many customers who did not churn. The cost calculation depends on example offer-cost and customer-value assumptions; it is not measured business savings.
+
+The model is a learning project using a static public sample. It does not prove that a retention offer prevents churn, and the results may change with a different split or dataset.
+
+## Data and database
+
+The CSV has 7,043 customers, one customer ID column, 19 predictor columns, and the churn label. The data is a public sample, not a real business customer list.
+
+The database has two main tables:
+
+- `customers` stores the source customer records.
+- `churn_scores` stores model probability, risk category, monthly revenue exposure, and estimated CLV at risk.
+
+The BI views are `v_customer_churn_analytics`, `v_churn_bi_kpis`, and `v_churn_contract_summary`. The customer view joins source rows to model scores. Scores are produced for rows labelled retained in this sample as a stand-in for current active customers; the dataset does not include point-in-time snapshots.
+
+## Run it locally with Docker
+
+You need Docker Desktop running. From the project folder, run these commands in PowerShell:
+
+```powershell
+docker compose up --build -d
+docker compose run --rm app python -m scripts.load_data --create-schema
+docker compose run --rm app python -m model.score_customers
+```
+
+The schema command creates the tables and BI views, then loads or updates the customer data. The scoring command writes scores to PostgreSQL and updates `data/active_customer_scores.csv`.
+
+Open the app at [http://localhost:8501](http://localhost:8501).
+
+To stop the containers later:
+
+```powershell
+docker compose down
+```
+
+## Run Python without Docker
+
+Use Python 3.10 or later. In a virtual environment, install the packages and start the app:
 
 ```powershell
 python -m venv .venv
@@ -28,74 +71,44 @@ python -m model.score_customers --no-db
 streamlit run streamlit_app/app.py
 ```
 
-Training writes the calibrated model, baseline model, threshold policy, test metrics, and calibration plot under `model/`. The repository includes a reference `data/active_customer_scores.csv` produced by the batch scorer; regenerate it with `python -m model.score_customers --no-db`. The Streamlit app reads these artifacts and the bundled source data.
+The `--no-db` option writes the score CSV without needing PostgreSQL. To load data into PostgreSQL, set `DATABASE_URL` in your local `.env` file.
 
-## Model evaluation and business assumptions
+## Dashboards
 
-The test set is held out from threshold selection. The threshold is chosen on a validation split using the offer cost, estimated offer success rate, and remaining customer value configured in `src/config.py`. The financial output is an **illustrative expected value under those assumptions**, not realized savings or a causal estimate of campaign impact. The app reads actual metrics from `model/metrics.json`; no metric is hardcoded as a result.
+The repo includes `dashboards/churn_analytics_dashboard.xlsx`, which can be opened in Excel and imported into Power BI or Tableau. It also has SQL views and setup guides for connecting those tools to PostgreSQL:
 
-Current reproducible holdout results (seed 42, 1,409 test customers):
+- [Power BI guide](dashboards/powerbi_guide.md)
+- [Tableau guide](dashboards/tableau_guide.md)
 
-| Model / policy | Accuracy | ROC-AUC | PR-AUC | Churn recall | False negatives |
-|---|---:|---:|---:|---:|---:|
-| XGBoost, threshold 0.50 | 80.2% | 0.841 | 0.647 | 55.6% | 166 |
-| Logistic Regression, threshold 0.50 | 74.0% | 0.847 | 0.666 | 77.5% | 84 |
-| XGBoost, cost threshold 0.07 | 54.5% | 0.841 | 0.647 | 96.3% | 14 |
-| Logistic Regression, cost threshold 0.15 | 54.9% | 0.847 | 0.666 | 97.6% | 9 |
+The guides describe report layouts for churn rate, predicted risk, revenue exposure, tenure groups, and a high-risk customer list. The repository currently contains the Excel dashboard and the Power BI/Tableau guides; it does not contain saved `.pbix` or `.twbx` report files.
 
-On this fixed split, XGBoost has higher accuracy at 0.50, while Logistic Regression has stronger ROC-AUC, PR-AUC, and churn recall. The cost-selected policies contact many customers; the reported XGBoost policy did **not** reduce false negatives versus the Logistic Regression cost policy. These are the observed results, not a guaranteed target. Global SHAP ranked month-to-month contract, `charge_per_tenure`, lack of online security, fiber service, and lack of tech support among the leading drivers.
+## Streamlit deployment
 
-After training, review `model/metrics.json` before updating a résumé or presenting a specific performance figure. In particular, compare churn recall and PR-AUC with the Logistic Regression baseline, and report the false-negative change at the same 0.50 threshold. Accuracy is included but should not be treated as the only measure on an imbalanced dataset.
+The app runs locally at `http://localhost:8501`. A Streamlit Community Cloud URL is configured, but it showed a crash page at the last check. I have not confirmed that the hosted version is working; the local app is the reliable demo for now.
 
-The default split is stratified and reproducible. This benchmark is a static cross-sectional dataset, so results do not establish how a model will perform on future customers or prove that a retention offer prevents churn.
-
-## PostgreSQL
-
-1. Install Docker Desktop and copy `.env.example` to `.env`; replace its local development password.
-2. Start PostgreSQL and the app, then load/update source rows and create the BI views:
-
-```powershell
-docker compose up --build -d
-docker compose run --rm app python -m scripts.load_data --create-schema
-docker compose run --rm app python -m model.score_customers
-```
-
-The schema setup also creates `v_customer_churn_analytics` (one row per customer), `v_churn_bi_kpis`, and `v_churn_contract_summary`. Connect Tableau or Power BI to these views for a consistent semantic layer. The customer view left-joins model scores, so historical churn analysis remains available for every row while predictions and exposure are populated for the scored active-customer proxy only.
-
-Open `http://localhost:8501`. For an installed PostgreSQL instead, set `DATABASE_URL` in `.env` to its connection string and run the Python module commands directly.
-
-The scorer also saves a CSV if PostgreSQL is unavailable. It does not drop or replace the `churn_scores` table. It scores rows marked retained in the source CSV to simulate a current active-customer population; this is a teaching proxy because the public sample has no point-in-time snapshots.
-
-## Other components
-
-- **Survival analysis:** `python -m model.survival_analysis` exports a Kaplan–Meier chart and estimates a Cox model. This is exploratory: the public data lacks event dates and contract changes over time.
-- **Streamlit:** Shows individual prediction probability and SHAP drivers, observed contract churn rates, test metrics, and batch score exports.
-- **Tableau / Power BI:** `dashboards/churn_analytics_dashboard.xlsx` is a refreshable dashboard and BI-ready workbook with source rows, active customer scores, contract summaries, risk summaries, and charts. Connect either tool to the PostgreSQL BI views for live local data, or import the workbook tabs. See the guides in `dashboards/` for field mappings and visual layouts. Native Tableau workbooks and Power BI reports are user-authored in their desktop applications; the repo includes the data model, source, and build instructions.
-- **Excel dashboard refresh:** Run `python -m model.score_customers --no-db` followed by `python dashboards/build_dashboard.py` after retraining or rescoring.
-- **Notebook:** `notebooks/EDA_and_Model.ipynb` contains initial EDA; use the Python training module as the source of truth for model results.
-- **Docker:** `docker compose up --build` starts the app and PostgreSQL together.
-
-### Hosted demo
-
-The configured [Streamlit Community Cloud URL](https://customer-churn-analytics-platform-4p3atmewxcctscsmcr7flm.streamlit.app/) was showing a crash page at the last health check. The local app responds successfully at `http://localhost:8501`; use the local Quick start above until the hosted deployment is healthy again. Streamlit Cloud deployment logs are account-specific, so inspect the app's **Manage app → Logs** page to identify a cloud-only startup error, then redeploy. PostgreSQL is an optional local integration for the hosted demo. After replacing the model, rerun training and commit the updated joblib artifact together with `model/metrics.json` and `model/threshold.json` so the app and score policy stay in sync.
-
-## Repository layout
+## Project folders
 
 ```text
-data/                 Source dataset and generated score export
-dashboards/           BI guides, dashboard builder, and refreshable Excel dashboard
-model/                Training, scoring, survival analysis, generated artifacts
-notebooks/            EDA notebook
-scripts/              PostgreSQL ingestion command
-sql/                  Schema and business queries
-src/                  Feature engineering, model pipeline, business costs
-streamlit_app/        Interactive prediction and analytics UI
-tests/                Automated regression tests
+data/                 Source customer data and batch score export
+dashboards/           Excel dashboard, build script, and BI connection guides
+model/                Training, scoring, evaluation, and saved model files
+notebooks/            Starter exploratory analysis notebook
+scripts/              PostgreSQL data loader
+sql/                  Database schema, analysis queries, and BI views
+src/                  Feature engineering, model setup, and cost assumptions
+streamlit_app/        Streamlit prediction and analytics app
+tests/                Model-related checks
 ```
 
-## Limitations and recommendations
+## A few things I learned
 
-- Treat risk scores as prioritization signals, not certainty about an individual customer.
-- Validate the cost assumptions with a real retention team and run an experiment before claiming campaign savings.
-- Monitor calibration and model performance when new customer data becomes available.
-- A useful business action to evaluate is moving month-to-month customers toward longer contracts, while testing whether the offer improves retention.
+- Accuracy alone did not tell the full story because churn is the smaller class. Recall, PR-AUC, and false negatives helped explain the model trade-off.
+- Contract type and service choices were useful areas to explore, but the dataset only shows associations. They do not establish why a customer churned.
+- Revenue at risk is probability-weighted exposure, and CLV at risk uses an assumed remaining customer lifetime. They are estimates, not realized losses.
+- The cohort chart groups customers by their recorded tenure. The data has no signup dates, so it is not a calendar-based cohort or longitudinal survival study.
+
+## Possible next improvements
+
+- Finish and save the native Power BI and Tableau reports from the included guides.
+- Check the Streamlit Community Cloud logs and restore the hosted demo.
+- Try the model on newer customer data and validate the retention assumptions with an actual experiment.
